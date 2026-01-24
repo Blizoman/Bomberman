@@ -1,0 +1,43 @@
+dobre chcem skusit sam kazdopadne dakujem za rady ja to vidim tak ze by som si to rozlozil na viac casti... 
+
+
+
+1. 
+
+v prvom rade nejak urcit vykreslovanie mapy resp zatial asi iba jednu mapu kde to bude iba nejaka hasmapa s cislami 0-volne, 1-stena(neznicitelna), 2-stena(znicitelna bombou), 3-gadget, 4-hostile, 5-player
+
+
+
+2.
+
+Definovat gadgety (opat zo zaciatku mozno iba jeden ktory zvacsi dosah bomby) inak potom napriklad skakanie atd... takze bude sa dat modifikovat casom (rovnako by som to potom chcel aj s mapami
+
+
+
+3. 
+
+Definovat hostile (zo zaciatku asi iba jedna, A-star pre pohyb nejaka logika), neskor zase moznost pridania viacerych...
+
+
+
+4.
+
+Player - jedna jedina postavicka nejak koooperacia s gadgetmi + zabijanie hostiles + non passage cez steny, nicenie destroyable stien,.... staci asi jedna jedine
+
+
+
+5.
+
+cela funkcnost dokopy
+
+
+
+6. obrazky custom z webu pre Hraca hostile atd
+
+
+
+7. hudba maybe
+
+
+
+8. spustitelne .exe

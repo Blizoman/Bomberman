@@ -1,0 +1,18 @@
+TILE_SIZE = 50 # Velkost jendoho policka bude 50 pixelov 
+SCREEN_W = 800 #px
+SCREEN_H = 600 #px
+
+# Map
+COLOR_GRASS = (0, 255, 0)
+COLOR_WALL = (30, 30, 30)
+COLOR_WALL_BR = (110, 110, 110)
+#COLOR_GADGET
+#COLOR_BOMB
+#COLOR_PSPAWN
+#COLOR_HSPAWN
+
+# Player
+COLOR_PLAYER = (0, 20 , 255)
+
+# Hostile
+COLOR_HOSTILE = (255, 20, 0)
