@@ -1,5 +1,6 @@
 import pygame
 import settings
+import bomb
 
 
 class Player:
@@ -7,6 +8,8 @@ class Player:
         self.rect = pygame.Rect(x, y, settings.TILE_SIZE - 4, settings.TILE_SIZE - 4)
         self.color = settings.COLOR_PLAYER
         self.speed = 4
+        self.current_bombs = 0
+        self.max_bombs = 1
     
     def check_collision(self, active_map):
         corners = [
@@ -44,10 +47,14 @@ class Player:
             self.rect.x += self.speed
             if self.check_collision(active_map):
                 self.rect.x -= self.speed
-        if keys[pygame.K_SPACE]:
-            pass
-            # placnutie bomby
 
+    def can_place_bomb(self):
+        if self.current_bombs < self.max_bombs:
+            return True
+        return False
+    
+    def ammo_descrease(self):
+        self.current_bombs += 1
 
     def draw(self, screen):
         pygame.draw.rect(screen ,self.color, self.rect)

@@ -16,3 +16,6 @@ COLOR_PLAYER = (0, 20 , 255)
 
 # Hostile
 COLOR_HOSTILE = (255, 20, 0)
+
+# Bomb
+COLOR_BOMB = (255, 255, 100)

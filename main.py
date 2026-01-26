@@ -10,6 +10,8 @@ pygame.init()
 screen = pygame.display.set_mode((settings.SCREEN_W, settings.SCREEN_H))
 pygame.display.set_caption("Bomberman 2026")
 
+active_bombs = []
+
 # 2. Ziskanie mapy
 active_map = map_logic.get_level_1()
 active_player = None
@@ -39,10 +41,27 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+
+        if event.type == pygame.KEYDOWN:
+
+            if event.key == pygame.K_SPACE:
+
+                if my_player and my_player.can_place_bomb():
+                    new_bomb = bomb.Bomb(my_player.rect.x, my_player.rect.y)
+                    active_bombs.append(new_bomb)
+                    my_player.ammo_descrease()
     
     ### Movement
     if my_player:
         my_player.move(active_map)
+
+    ## Bomby update
+    for bomb_item in active_bombs[:]:
+        exploded = bomb_item.update()
+        if exploded:
+            active_bombs.remove(bomb_item)
+            if my_player:
+                my_player.ammo_descrease()
 
     ### Kreslenie
     for row_idx, row in enumerate(active_map):  # Kreslenie jednotlivych policok TODO do funkcie?!
@@ -59,6 +78,9 @@ while running:
                 color = settings.COLOR_WALL_BR
 
             pygame.draw.rect(screen, color, (x, y, settings.TILE_SIZE, settings.TILE_SIZE))
+
+    for bomb_item in active_bombs:
+        bomb_item.draw(screen)
 
     if my_player:
         my_player.draw(screen)
