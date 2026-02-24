@@ -11,6 +11,9 @@ class Player:
         self.speed = 4
         self.current_bombs = 0
         self.max_bombs = 3
+
+    def kill(self):
+        print("You died!")
     
     def check_collision(self, active_map):
         corners = [

@@ -7,6 +7,8 @@ class Hostile:
         self.color = settings.COLOR_HOSTILE
         self.speed = 3
 
+    def kill(self):
+        ...
     def check_collision(self, active_map):
         corners = [
             (self.rect.left, self.rect.top),

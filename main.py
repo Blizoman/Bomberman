@@ -10,8 +10,8 @@ WALL = 1
 BREAKABLE_WALL = 2
 GADGET = 3
 BOMB = 4
-PLAYER_SPAWN = 5
-HOSTILE_SPAWN = 6
+PLAYER = 5
+HOSTILE = 6
 ############################## MAIN ##############################
 # 1. Init
 pygame.init()
@@ -19,6 +19,7 @@ screen = pygame.display.set_mode((settings.SCREEN_W, settings.SCREEN_H))
 pygame.display.set_caption("Bomberman 2026")
 
 active_bombs = []
+game_over = False
 
 # 2. Ziskanie mapy
 active_map = map_logic.get_level_1()
@@ -45,6 +46,7 @@ running = True
 clock = pygame.time.Clock()
 
 while running:
+
     ### Game eventy 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -65,7 +67,7 @@ while running:
                         active_bombs.append(new_bomb)
                         my_player.ammo_descrease()
                         
-    
+
     ### Movement
     if my_player:
         my_player.move(active_map)
@@ -88,6 +90,30 @@ while running:
                 active_map[(bomb_item.rect.centery + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
             if(map_logic.check_tile(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
                 active_map[(bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
+
+            explosion_rect_hor = pygame.Rect(
+                bomb_item.rect.x - bomb_item.range * settings.TILE_SIZE,
+                bomb_item.rect.y,
+                (bomb_item.range * 2 + 1) * settings.TILE_SIZE,
+                settings.TILE_SIZE
+            )
+            explosion_rect_ver = pygame.Rect(
+                bomb_item.rect.x,
+                bomb_item.rect.y - bomb_item.range * settings.TILE_SIZE,
+                settings.TILE_SIZE,
+                (bomb_item.range * 2 + 1) * settings.TILE_SIZE
+            )
+
+            if my_player.rect.colliderect(explosion_rect_hor) or my_player.rect.colliderect(explosion_rect_ver):
+                my_player.kill()
+                pygame.display.flip()
+                pygame.time.delay(2000)
+                
+                #jump main menu
+            
+            #if my_hostile.rect.colliderect(explosion_rect_hor) or my_hostile.rect.colliderect(explosion_rect_ver):
+                #   my_hostile.kill()
+
 
     ### Kreslenie
     for row_idx, row in enumerate(active_map):  # Kreslenie jednotlivych policok TODO do funkcie?!
