@@ -4,6 +4,14 @@ import settings
 import player
 import hostile
 import bomb
+
+EMPTY = 0
+WALL = 1
+BREAKABLE_WALL = 2
+GADGET = 3
+BOMB = 4
+PLAYER_SPAWN = 5
+HOSTILE_SPAWN = 6
 ############################## MAIN ##############################
 # 1. Init
 pygame.init()
@@ -48,8 +56,15 @@ while running:
 
                 if my_player and my_player.can_place_bomb():
                     new_bomb = bomb.Bomb(my_player.rect.x, my_player.rect.y)
-                    active_bombs.append(new_bomb)
-                    my_player.ammo_descrease()
+                    is_free = True
+                    for bombito in active_bombs:
+                        if bombito.rect.colliderect(new_bomb.rect):
+                            is_free = False
+                            break
+                    if is_free:
+                        active_bombs.append(new_bomb)
+                        my_player.ammo_descrease()
+                        
     
     ### Movement
     if my_player:
@@ -60,8 +75,19 @@ while running:
         exploded = bomb_item.update()
         if exploded:
             active_bombs.remove(bomb_item)
-            if my_player:
-                my_player.ammo_descrease()
+            my_player.ammo_increase()
+
+            #### TODO: x+1 je len posuv do ktorej strany sa to rozbije 
+            ## ale s gadget to bude vzdy x + GADGET_LEN
+
+            if(map_logic.check_tile((bomb_item.rect.centerx + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
+                active_map[(bomb_item.rect.centery) // settings.TILE_SIZE][(bomb_item.rect.centerx + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE] = EMPTY
+            if(map_logic.check_tile((bomb_item.rect.centerx - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
+                active_map[(bomb_item.rect.centery) // settings.TILE_SIZE][(bomb_item.rect.centerx - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE] = EMPTY
+            if(map_logic.check_tile(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
+                active_map[(bomb_item.rect.centery + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
+            if(map_logic.check_tile(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
+                active_map[(bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
 
     ### Kreslenie
     for row_idx, row in enumerate(active_map):  # Kreslenie jednotlivych policok TODO do funkcie?!

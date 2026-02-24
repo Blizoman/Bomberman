@@ -1,6 +1,7 @@
 import pygame
 import settings
 import bomb
+import map_logic
 
 
 class Player:
@@ -9,7 +10,7 @@ class Player:
         self.color = settings.COLOR_PLAYER
         self.speed = 4
         self.current_bombs = 0
-        self.max_bombs = 1
+        self.max_bombs = 3
     
     def check_collision(self, active_map):
         corners = [
@@ -48,6 +49,7 @@ class Player:
             if self.check_collision(active_map):
                 self.rect.x -= self.speed
 
+
     def can_place_bomb(self):
         if self.current_bombs < self.max_bombs:
             return True
@@ -55,6 +57,9 @@ class Player:
     
     def ammo_descrease(self):
         self.current_bombs += 1
+
+    def ammo_increase(self):
+        self.current_bombs -= 1
 
     def draw(self, screen):
         pygame.draw.rect(screen ,self.color, self.rect)
