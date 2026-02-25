@@ -12,6 +12,16 @@ GADGET = 3
 BOMB = 4
 PLAYER = 5
 HOSTILE = 6
+
+
+def boom_direction(target_col, target_row):
+    if 0 <= target_row < len(active_map) and 0 <= target_col < len(active_map[0]): #overenie zasahu mimo mapy
+        if(map_logic.check_tile(target_col, target_row, active_map) == BREAKABLE_WALL): #overenie bloku ci je znicitelny atd
+            active_map[target_row][target_col] = EMPTY
+            return False
+        if(map_logic.check_tile(target_col, target_row, active_map) == WALL):
+            return False
+        return True
 ############################## MAIN ##############################
 # 1. Init
 pygame.init()
@@ -24,7 +34,7 @@ game_over = False
 # 2. Ziskanie mapy
 active_map = map_logic.get_level_1()
 active_player = None
-active_hostile = None
+active_hostiles = []
 
 # Spawning player and hostile
 for row_idx, row in enumerate(active_map):
@@ -40,6 +50,7 @@ for row_idx, row in enumerate(active_map):
             spawn_y = row_idx * settings.TILE_SIZE + 2
             my_hostile = hostile.Hostile(spawn_x, spawn_y)
             active_map[row_idx][col_idx] = 0 # Nahrada spawnpointu za empty
+            active_hostiles.append(my_hostile)
 
 # 3. Game loop
 running = True
@@ -78,41 +89,88 @@ while running:
         if exploded:
             active_bombs.remove(bomb_item)
             my_player.ammo_increase()
+            
+            ranger = 1
+            runner = True
+            while(ranger <= bomb_item.range and runner):
+                runner = boom_direction((bomb_item.rect.centerx + ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE)
+                ranger+=1
+            right_ranger = ranger - 1
 
-            #### TODO: x+1 je len posuv do ktorej strany sa to rozbije 
-            ## ale s gadget to bude vzdy x + GADGET_LEN
+            ranger = 1
+            runner = True
+            while(ranger <= bomb_item.range and runner):
+                runner = boom_direction((bomb_item.rect.centerx - ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE)
+                ranger+=1
+            left_ranger = ranger - 1
 
-            if(map_logic.check_tile((bomb_item.rect.centerx + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
-                active_map[(bomb_item.rect.centery) // settings.TILE_SIZE][(bomb_item.rect.centerx + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE] = EMPTY
-            if(map_logic.check_tile((bomb_item.rect.centerx - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
-                active_map[(bomb_item.rect.centery) // settings.TILE_SIZE][(bomb_item.rect.centerx - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE] = EMPTY
-            if(map_logic.check_tile(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
-                active_map[(bomb_item.rect.centery + bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
-            if(map_logic.check_tile(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE, active_map) == BREAKABLE_WALL):
-                active_map[(bomb_item.rect.centery - bomb_item.range * settings.TILE_SIZE) // settings.TILE_SIZE][bomb_item.rect.centerx // settings.TILE_SIZE] = EMPTY
+            ranger = 1
+            runner = True
+            while(ranger <= bomb_item.range and runner):
+                runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - ranger * settings.TILE_SIZE) // settings.TILE_SIZE)
+                ranger+=1
+            top_ranger = ranger - 1
 
-            explosion_rect_hor = pygame.Rect(
-                bomb_item.rect.x - bomb_item.range * settings.TILE_SIZE,
-                bomb_item.rect.y,
-                (bomb_item.range * 2 + 1) * settings.TILE_SIZE,
+            ranger = 1
+            runner = True
+            while(ranger <= bomb_item.range and runner):
+                runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery + ranger * settings.TILE_SIZE) // settings.TILE_SIZE)
+                ranger+=1
+            bottom_ranger = ranger - 1
+
+
+            explosion_rect_right = pygame.Rect(
+                bomb_item.rect.right,
+                bomb_item.rect.top,
+                right_ranger * settings.TILE_SIZE,
                 settings.TILE_SIZE
             )
-            explosion_rect_ver = pygame.Rect(
+            explosion_rect_left = pygame.Rect(
+                bomb_item.rect.x - left_ranger * settings.TILE_SIZE,
+                bomb_item.rect.y,
+                left_ranger * settings.TILE_SIZE,
+                settings.TILE_SIZE
+            )
+            explosion_rect_top = pygame.Rect(
                 bomb_item.rect.x,
-                bomb_item.rect.y - bomb_item.range * settings.TILE_SIZE,
+                bomb_item.rect.y - top_ranger * settings.TILE_SIZE,
                 settings.TILE_SIZE,
-                (bomb_item.range * 2 + 1) * settings.TILE_SIZE
+                top_ranger * settings.TILE_SIZE
+            )
+            explosion_rect_bottom = pygame.Rect(
+                bomb_item.rect.x,
+                bomb_item.rect.bottom,
+                settings.TILE_SIZE,
+                bottom_ranger * settings.TILE_SIZE
             )
 
-            if my_player.rect.colliderect(explosion_rect_hor) or my_player.rect.colliderect(explosion_rect_ver):
+            # Vykreslenie vybuchov bomb
+            pygame.draw.rect(screen, (255, 255, 0), explosion_rect_right)
+            pygame.draw.rect(screen, (255, 255, 0), explosion_rect_left)
+            pygame.draw.rect(screen, (255, 255, 0), explosion_rect_top)
+            pygame.draw.rect(screen, (255, 255, 0), explosion_rect_bottom)
+            pygame.display.flip()
+
+            if (my_player.rect.colliderect(bomb_item.rect) or
+                my_player.rect.colliderect(explosion_rect_right) or 
+                my_player.rect.colliderect(explosion_rect_left) or 
+                my_player.rect.colliderect(explosion_rect_top) or 
+                my_player.rect.colliderect(explosion_rect_bottom)
+            ):
                 my_player.kill()
                 pygame.display.flip()
                 pygame.time.delay(2000)
                 
                 #jump main menu
-            
-            #if my_hostile.rect.colliderect(explosion_rect_hor) or my_hostile.rect.colliderect(explosion_rect_ver):
-                #   my_hostile.kill()
+            for currecnt_hostile in active_hostiles[:]:
+                if (currecnt_hostile.rect.colliderect(bomb_item.rect) or
+                    currecnt_hostile.rect.colliderect(explosion_rect_right) or 
+                    currecnt_hostile.rect.colliderect(explosion_rect_left) or 
+                    currecnt_hostile.rect.colliderect(explosion_rect_top) or 
+                    currecnt_hostile.rect.colliderect(explosion_rect_bottom)
+                ):
+                    currecnt_hostile.kill()
+                    active_hostiles.remove(currecnt_hostile)
 
 
     ### Kreslenie
@@ -137,8 +195,8 @@ while running:
     if my_player:
         my_player.draw(screen)
 
-    if my_hostile:
-        my_hostile.draw(screen)
+    for current_hostiles in active_hostiles:
+        currecnt_hostile.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)

@@ -1,14 +1,19 @@
 import pygame
 import settings
+import pathfinder
 
 class Hostile:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, settings.TILE_SIZE - 4, settings.TILE_SIZE - 4)
         self.color = settings.COLOR_HOSTILE
-        self.speed = 3
+        self.speed = 2
+        self.path = []
+        self.last_player_grid = None
 
     def kill(self):
-        ...
+        print("Hostile died!")
+        # ++ hracove body/killy/HP/mana na gadget idk 
+
     def check_collision(self, active_map):
         corners = [
             (self.rect.left, self.rect.top),
