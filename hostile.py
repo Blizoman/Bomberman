@@ -32,8 +32,29 @@ class Hostile:
                     return True
         return False
 
-    def move(self, active_map): # Automatizacia A-star cez AI ? 
-        pass
+    def move(self, player_rect, active_map): # Automatizacia A-star cez AI ? 
+        enemy_grid = (self.rect.centerx // settings.TILE_SIZE, self.rect.centery // settings.TILE_SIZE)
+        player_grid = (player_rect.centerx // settings.TILE_SIZE, player_rect.centery // settings.TILE_SIZE)
+
+        if player_grid != self.last_player_grid:
+            self.path = pathfinder.find_path(enemy_grid, player_grid, active_map)
+            self.last_player_grid = player_grid
+
+        if self.path and len(self.path) > 1:
+            next_step = self.path[1]
+
+            target_x = next_step[0] * settings.TILE_SIZE + settings.TILE_SIZE // 2
+            target_y = next_step[1] * settings.TILE_SIZE + settings.TILE_SIZE // 2
+
+            if self.rect.centerx < target_x: self.rect.centerx += self.speed
+            elif self.rect.centerx > target_x: self.rect.centerx -= self.speed
+
+            if self.rect.centery < target_y: self.rect.centery += self.speed
+            elif self.rect.centery > target_y: self.rect.centery -= self.speed
+
+            if abs(self.rect.centerx - target_x) < self.speed and abs(self.rect.centery - target_y) < self.speed:
+                self.path.pop(0)
+
 
     def draw(self, screen):
         pygame.draw.rect(screen ,self.color, self.rect)

@@ -83,6 +83,9 @@ while running:
     if my_player:
         my_player.move(active_map)
 
+    for current_hostile in active_hostiles:
+        current_hostile.move(my_player.rect, active_map)
+
     ## Bomby update
     for bomb_item in active_bombs[:]:
         exploded = bomb_item.update()
@@ -195,8 +198,8 @@ while running:
     if my_player:
         my_player.draw(screen)
 
-    for current_hostiles in active_hostiles:
-        currecnt_hostile.draw(screen)
+    for current_hostile in active_hostiles:
+        current_hostile.draw(screen)
 
     pygame.display.flip()
     clock.tick(60)
