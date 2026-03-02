@@ -6,7 +6,7 @@ class Hostile:
     def __init__(self, x, y):
         self.rect = pygame.Rect(x, y, settings.TILE_SIZE - 4, settings.TILE_SIZE - 4)
         self.color = settings.COLOR_HOSTILE
-        self.speed = 2
+        self.speed = 1
         self.path = []
         self.last_player_grid = None
 

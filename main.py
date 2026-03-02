@@ -69,7 +69,12 @@ while running:
 
                 if my_player and my_player.can_place_bomb():
                     new_bomb = bomb.Bomb(my_player.rect.x, my_player.rect.y)
+                    grid_x = new_bomb.rect.centerx //settings.TILE_SIZE
+                    grid_y = new_bomb.rect.centery //settings.TILE_SIZE
+                    active_map[grid_y][grid_x] = BOMB
                     is_free = True
+                    if not (my_player.rect.colliderect(new_bomb.rect)):
+                        new_bomb.isSolid = True
                     for bombito in active_bombs:
                         if bombito.rect.colliderect(new_bomb.rect):
                             is_free = False
@@ -90,6 +95,9 @@ while running:
     for bomb_item in active_bombs[:]:
         exploded = bomb_item.update()
         if exploded:
+            agrid_x = bomb_item.rect.centerx // settings.TILE_SIZE
+            grid_y = bomb_item.rect.centery // settings.TILE_SIZE
+            active_map[grid_y][grid_x] = EMPTY
             active_bombs.remove(bomb_item)
             my_player.ammo_increase()
             

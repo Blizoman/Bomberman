@@ -9,6 +9,7 @@ class Bomb:
         self.range = 2 # dosah bomby TILE kde stoji + jeden dalsi do kazdej strany 
         self.time = 3 * 60 # 3 sekundy od polozenia do vybuchu
         self.color = settings.COLOR_BOMB
+        self.isSolid = False
 
     def update(self):
         self.time -= 1
