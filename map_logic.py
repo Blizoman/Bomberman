@@ -26,6 +26,10 @@ def get_level_1():                              # Vytvorenie mapy
     level[rows-2][1] = 6
     level[rows-2][cols-2] = 6
 
+
+    level[1][2] = 0
+    level[2][1] = 0
+
     return level
 
 def check_tile(x, y, map):                      # Typ policka
