@@ -4,8 +4,8 @@
 
 
 TILE_SIZE = 50 # Velkost jendoho policka bude 50 pixelov 
-SCREEN_W = 800 #px
-SCREEN_H = 600 #px
+SCREEN_W = 750 #px
+SCREEN_H = 750 #px
 
 # Map
 COLOR_GRASS = (0, 255, 0)
