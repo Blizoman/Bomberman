@@ -15,15 +15,19 @@ GADGET = 3
 BOMB = 4
 PLAYER = 5
 HOSTILE = 6
+PORTAL = 7
 
-def boom_direction(target_col, target_row):
+def boom_direction(target_col, target_row, portal_pos):
     if 0 <= target_row < len(active_map) and 0 <= target_col < len(active_map[0]): # overenie zasahu mimo mapy
         if map_logic.check_tile(target_col, target_row, active_map) == BREAKABLE_WALL:
-            # Drop gadget with a 30% chance
-            if random.random() < 0.3:
-                active_map[target_row][target_col] = GADGET
+            if (target_row, target_col) == portal_pos:
+                active_map[target_row][target_col] = PORTAL
             else:
-                active_map[target_row][target_col] = EMPTY
+                # Drop gadget with a 30% chance
+                if random.random() < 0.3:
+                    active_map[target_row][target_col] = GADGET
+                else:
+                    active_map[target_row][target_col] = EMPTY
             return False
         if map_logic.check_tile(target_col, target_row, active_map) == WALL:
             return False
@@ -37,6 +41,7 @@ def reset_game():
     new_map = map_logic.get_level_1()
     new_player = None
     new_hostiles = []
+    breakable_walls = []
     
     for row_idx, row in enumerate(new_map):
         for col_idx, tile in enumerate(row):
@@ -48,8 +53,11 @@ def reset_game():
             elif tile == 6:
                 new_hostiles.append(hostile.Hostile(spawn_x, spawn_y))
                 new_map[row_idx][col_idx] = 0
+            elif tile == BREAKABLE_WALL:
+                breakable_walls.append((row_idx, col_idx))
                 
-    return new_map, new_player, new_hostiles
+    portal_pos = random.choice(breakable_walls) if breakable_walls else (-1, -1)
+    return new_map, new_player, new_hostiles, portal_pos
 
 ############################## MAIN ##############################
 # 1. Init
@@ -64,7 +72,7 @@ game_over = False
 # 2. Ziskanie mapy
 manager = ui_manager.Manager()
 
-active_map, my_player, active_hostiles = reset_game()
+active_map, my_player, active_hostiles, active_portal_pos = reset_game()
 
 # 3. Game loop
 running = True
@@ -81,7 +89,7 @@ while running:
             if manager.state == "MENU":
                 action = manager.handle_menu_input(event)
                 if action == "START":
-                    active_map, my_player, active_hostiles = reset_game()
+                    active_map, my_player, active_hostiles, active_portal_pos = reset_game()
                     active_bombs = []
                     active_explosions = []
                 elif action == "QUIT":
@@ -112,7 +120,7 @@ while running:
 
             elif manager.state in ["GAME_OVER", "WIN"]:
                 if event.key == pygame.K_r:
-                    active_map, my_player, active_hostiles = reset_game()
+                    active_map, my_player, active_hostiles, active_portal_pos = reset_game()
                     active_bombs = []
                     active_explosions = []
                     manager.state = "PLAYING"
@@ -125,20 +133,19 @@ while running:
         if my_player:
             my_player.move(active_map)
             
-            # Gadget Pickup Logic
+            # Gadget and Portal Pickup Logic
             grid_x = my_player.rect.centerx // settings.TILE_SIZE
             grid_y = my_player.rect.centery // settings.TILE_SIZE
             if 0 <= grid_y < len(active_map) and 0 <= grid_x < len(active_map[0]):
                 if active_map[grid_y][grid_x] == GADGET:
                     active_map[grid_y][grid_x] = EMPTY
-                    # Increase bomb range (as an example)
-                    for mb in active_bombs: # Or increase global bomb range for the player later.
-                        # Wait, bomb range is on the Bomb object, we need to increase it for the player.
-                        # Since player doesn't currently hold a 'bomb_range', we'll add it simply for future bombs:
-                        pass
+                    # Increase bomb range
                     if not hasattr(my_player, 'bomb_range'):
                         my_player.bomb_range = 2
                     my_player.bomb_range += 1
+                elif active_map[grid_y][grid_x] == PORTAL:
+                    if len(active_hostiles) == 0:
+                        manager.player_win()
 
         for current_hostile in active_hostiles:
             current_hostile.move(my_player.rect, active_map)
@@ -168,28 +175,28 @@ while running:
                 ranger = 1
                 runner = True
                 while(ranger <= bomb_item.range and runner):
-                    runner = boom_direction((bomb_item.rect.centerx + ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE)
+                    runner = boom_direction((bomb_item.rect.centerx + ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_portal_pos)
                     ranger+=1
                 right_ranger = ranger - 1
 
                 ranger = 1
                 runner = True
                 while(ranger <= bomb_item.range and runner):
-                    runner = boom_direction((bomb_item.rect.centerx - ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE)
+                    runner = boom_direction((bomb_item.rect.centerx - ranger * settings.TILE_SIZE) // settings.TILE_SIZE, bomb_item.rect.centery // settings.TILE_SIZE, active_portal_pos)
                     ranger+=1
                 left_ranger = ranger - 1
 
                 ranger = 1
                 runner = True
                 while(ranger <= bomb_item.range and runner):
-                    runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - ranger * settings.TILE_SIZE) // settings.TILE_SIZE)
+                    runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery - ranger * settings.TILE_SIZE) // settings.TILE_SIZE, active_portal_pos)
                     ranger+=1
                 top_ranger = ranger - 1
 
                 ranger = 1
                 runner = True
                 while(ranger <= bomb_item.range and runner):
-                    runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery + ranger * settings.TILE_SIZE) // settings.TILE_SIZE)
+                    runner = boom_direction(bomb_item.rect.centerx // settings.TILE_SIZE, (bomb_item.rect.centery + ranger * settings.TILE_SIZE) // settings.TILE_SIZE, active_portal_pos)
                     ranger+=1
                 bottom_ranger = ranger - 1
 
@@ -237,8 +244,6 @@ while running:
                             current_hostile.kill()
                             if current_hostile in active_hostiles:
                                 active_hostiles.remove(current_hostile)
-                            if len(active_hostiles) == 0:
-                                manager.player_win()
                             break
 
 
@@ -266,6 +271,12 @@ while running:
                     pygame.draw.rect(screen, settings.COLOR_GRASS, (x, y, settings.TILE_SIZE, settings.TILE_SIZE))
                     # Render Gadget Box (blueish cyan inside)
                     pygame.draw.rect(screen, (0, 255, 255), (x + 10, y + 10, settings.TILE_SIZE - 20, settings.TILE_SIZE - 20))
+                
+                # Render Portal manually
+                if tile == PORTAL:
+                    pygame.draw.rect(screen, settings.COLOR_GRASS, (x, y, settings.TILE_SIZE, settings.TILE_SIZE))
+                    # Portal color, perhaps pulsating or just a centered rect
+                    pygame.draw.rect(screen, settings.COLOR_PORTAL, (x + 5, y + 5, settings.TILE_SIZE - 10, settings.TILE_SIZE - 10))
 
         for bomb_item in active_bombs:
             bomb_item.draw(screen)

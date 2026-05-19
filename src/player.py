@@ -26,7 +26,7 @@ class Player:
             if 0 <= grid_y < len(active_map) and 0 <= grid_x < len(active_map[0]):
                 tile_value = active_map[grid_y][grid_x]
 
-                if tile_value != 0:
+                if tile_value in [1, 2, 4]:
                     return True
         return False
     

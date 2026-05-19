@@ -19,3 +19,6 @@ COLOR_PLAYER = (0, 20 , 255)
 
 # Hostile
 COLOR_HOSTILE = (255, 20, 0)
+
+# Portal
+COLOR_PORTAL = (150, 0, 200)

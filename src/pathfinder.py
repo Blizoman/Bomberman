@@ -65,7 +65,7 @@ def find_path(start, target, active_map):
 
                 if 0 <= neighbor_row < len(active_map) and 0 <= neighbor_col < len(active_map[0]):
                     if not neighbor in closed_list:
-                        if (active_map[neighbor_row][neighbor_col] == EMPTY or neighbor == target):  
+                        if (active_map[neighbor_row][neighbor_col] in [0, 3, 7] or neighbor == target):  
                             g_score = g_scores[current] + 1
                             
                             if not neighbor in open_list:
