@@ -69,28 +69,44 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
+            if manager.state == "MENU":
+                action = manager.handle_menu_input(event)
+                if action == "START":
+                    active_map, my_player, active_hostiles = reset_game()
+                    active_bombs = []
+                elif action == "QUIT":
+                    running = False
 
-            if event.key == pygame.K_SPACE:
+            elif manager.state == "PLAYING":
+                if event.key == pygame.K_ESCAPE:
+                    manager.toggle_pause()
 
-                if my_player and my_player.can_place_bomb():
-                    new_bomb = bomb.Bomb(my_player.rect.x, my_player.rect.y)
-                    is_free = True
+                elif event.key == pygame.K_SPACE:
+                    if my_player and my_player.can_place_bomb():
+                        new_bomb = bomb.Bomb(my_player.rect.x, my_player.rect.y)
+                        is_free = True
 
-                    for bombito in active_bombs:
-                        if bombito.rect.colliderect(new_bomb.rect):
-                            is_free = False
-                            break
-                    if is_free:
-                        active_bombs.append(new_bomb)
-                        my_player.ammo_descrease()
-            
-            if manager.state != "PLAYING":
+                        for bombito in active_bombs:
+                            if bombito.rect.colliderect(new_bomb.rect):
+                                is_free = False
+                                break
+                        if is_free:
+                            active_bombs.append(new_bomb)
+                            my_player.ammo_descrease()
+
+            elif manager.state == "PAUSED":
+                if event.key == pygame.K_ESCAPE:
+                    manager.toggle_pause()
+                elif event.key == pygame.K_q:
+                    manager.state = "MENU"
+
+            elif manager.state in ["GAME_OVER", "WIN"]:
                 if event.key == pygame.K_r:
                     active_map, my_player, active_hostiles = reset_game()
                     active_bombs = []
                     manager.state = "PLAYING"
-                if event.key == pygame.K_ESCAPE:
-                    running = False
+                elif event.key == pygame.K_ESCAPE:
+                    manager.state = "MENU"
       
 
     ### Movement
@@ -193,10 +209,7 @@ while running:
                     my_player.rect.colliderect(explosion_rect_bottom)
                 ):  
                     manager.player_death()
-                    pygame.display.flip()
-                    pygame.time.delay(2000)
                     
-                    #jump main menu
                 for currecnt_hostile in active_hostiles[:]:
                     if (currecnt_hostile.rect.colliderect(bomb_item.rect) or
                         currecnt_hostile.rect.colliderect(explosion_rect_right) or 
@@ -211,29 +224,30 @@ while running:
 
 
     ### Kreslenie
-    for row_idx, row in enumerate(active_map):  # Kreslenie jednotlivych policok TODO do funkcie?!
-        for col_idx, tile in enumerate(row):
+    if manager.state != "MENU":
+        for row_idx, row in enumerate(active_map):  # Kreslenie jednotlivych policok TODO do funkcie?!
+            for col_idx, tile in enumerate(row):
 
-            x = col_idx * settings.TILE_SIZE
-            y = row_idx * settings.TILE_SIZE
+                x = col_idx * settings.TILE_SIZE
+                y = row_idx * settings.TILE_SIZE
 
-            if tile == 0:
-                color = settings.COLOR_GRASS
-            elif tile == 1:
-                color = settings.COLOR_WALL
-            else:
-                color = settings.COLOR_WALL_BR
+                if tile == 0:
+                    color = settings.COLOR_GRASS
+                elif tile == 1:
+                    color = settings.COLOR_WALL
+                else:
+                    color = settings.COLOR_WALL_BR
 
-            pygame.draw.rect(screen, color, (x, y, settings.TILE_SIZE, settings.TILE_SIZE))
+                pygame.draw.rect(screen, color, (x, y, settings.TILE_SIZE, settings.TILE_SIZE))
 
-    for bomb_item in active_bombs:
-        bomb_item.draw(screen)
+        for bomb_item in active_bombs:
+            bomb_item.draw(screen)
 
-    if my_player:
-        my_player.draw(screen)
+        if my_player:
+            my_player.draw(screen)
 
-    for current_hostile in active_hostiles:
-        current_hostile.draw(screen)
+        for current_hostile in active_hostiles:
+            current_hostile.draw(screen)
 
     manager.draw(screen)
 
